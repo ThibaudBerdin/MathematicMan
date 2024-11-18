@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Multiplication Practice App</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-top: 50px;
+            }
+            .question {
+                margin: 10px 0;
+            }
+            #questions-container {
+                margin-top: 20px;
+            }
+            #fireworks {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 999;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Multiplication Practice Auguste & Thib</h1>
+        <label for="num-questions">Number of questions:</label>
+        <input type="number" id="num-questions" min="1" max="100" value="5" />
+        <button onclick="generateQuestions()">Generate</button>
+
+        <div id="questions-container"></div>
+        <button id="stop-button" onclick="stopTimer()" disabled>Stop</button>
+
+        <p id="result"></p>
+        <div id="incorrect-answers"></div>
+        <p id="timer-display"></p>
+
+        <canvas id="fireworks"></canvas>
+
+        <script>
+            let questions = [];
+            let startTime;
+            let timerRunning = false;
+            let timerInterval;
+            let fireworksCanvas;
+            let fireworksContext;
+
+            function generateQuestions() {
+                const container = document.getElementById(
+                    "questions-container"
+                );
+                container.innerHTML = "";
+                questions = [];
+                const numQuestions = parseInt(
+                    document.getElementById("num-questions").value
+                );
+
+                for (let i = 0; i < numQuestions; i++) {
+                    const a = Math.floor(Math.random() * 9) + 1;
+                    const b = Math.floor(Math.random() * 9) + 1;
+                    const question = {
+                        a: a,
+                        b: b,
+                        correctAnswer: a * b,
+                        userAnswer: null,
+                    };
+                    questions.push(question);
+
+                    const questionDiv = document.createElement("div");
+                    questionDiv.className = "question";
+                    questionDiv.innerHTML = `<span>${a} x ${b} = </span>`;
+                    const input = document.createElement("input");
+                    input.type = "number";
+                    input.oninput = startTimer;
+                    input.onchange = function () {
+                        question.userAnswer = parseInt(input.value);
+                    };
+                    questionDiv.appendChild(input);
+                    container.appendChild(questionDiv);
+                }
+
+                document.getElementById("stop-button").disabled = false;
+                document.getElementById("timer-display").innerText =
+                    "Time elapsed: 0 seconds";
+            }
+
+            function startTimer() {
+                if (!timerRunning) {
+                    startTime = new Date().getTime();
+                    timerRunning = true;
+                    timerInterval = setInterval(updateTimer, 1000);
+                }
+            }
+
+            function updateTimer() {
+                const currentTime = new Date().getTime();
+                const timeElapsed = Math.floor(
+                    (currentTime - startTime) / 1000
+                );
+                document.getElementById(
+                    "timer-display"
+                ).innerText = `Time elapsed: ${timeElapsed} seconds`;
+            }
+
+            function stopTimer() {
+                if (timerRunning) {
+                    timerRunning = false;
+                    clearInterval(timerInterval);
+                    const endTime = new Date().getTime();
+                    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
+
+                    let correctAnswers = 0;
+                    let incorrectAnswers = "";
+                    questions.forEach((q, index) => {
+                        if (q.userAnswer === q.correctAnswer) {
+                            correctAnswers++;
+                        } else if (q.userAnswer !== null) {
+                            incorrectAnswers += `<p>Question ${index + 1}: ${
+                                q.a
+                            } x ${q.b} = ${q.correctAnswer} (Your answer: ${
+                                q.userAnswer
+                            })</p>`;
+                        }
+                    });
+
+                    document.getElementById(
+                        "result"
+                    ).innerText = `You got ${correctAnswers} out of ${questions.length} correct in ${timeTaken} seconds.`;
+                    document.getElementById("incorrect-answers").innerHTML =
+                        incorrectAnswers;
+                    document.getElementById("stop-button").disabled = true;
+
+                    if (correctAnswers === questions.length) {
+                        startFireworks();
+                    }
+                }
+            }
+
+            function startFireworks() {
+                fireworksCanvas = document.getElementById("fireworks");
+                fireworksContext = fireworksCanvas.getContext("2d");
+                fireworksCanvas.width = window.innerWidth;
+                fireworksCanvas.height = window.innerHeight;
+
+                const fireworkParticles = [];
+
+                function createParticle(x, y) {
+                    return {
+                        x: x,
+                        y: y,
+                        dx: Math.random() * 4 - 2,
+                        dy: Math.random() * 4 - 2,
+                        life: 100,
+                    };
+                }
+
+                for (let i = 0; i < 100; i++) {
+                    fireworkParticles.push(
+                        createParticle(
+                            Math.random() * fireworksCanvas.width,
+                            Math.random() * fireworksCanvas.height
+                        )
+                    );
+                }
+
+                function drawFireworks() {
+                    fireworksContext.clearRect(
+                        0,
+                        0,
+                        fireworksCanvas.width,
+                        fireworksCanvas.height
+                    );
+                    fireworkParticles.forEach((particle) => {
+                        fireworksContext.beginPath();
+                        fireworksContext.arc(
+                            particle.x,
+                            particle.y,
+                            3,
+                            0,
+                            2 * Math.PI
+                        );
+                        fireworksContext.fillStyle = `rgba(255, 165, 0, ${
+                            particle.life / 100
+                        })`;
+                        fireworksContext.fill();
+                        particle.x += particle.dx;
+                        particle.y += particle.dy;
+                        particle.life--;
+                    });
+                    fireworkParticles.forEach((particle, index) => {
+                        if (particle.life <= 0) {
+                            fireworkParticles.splice(index, 1);
+                        }
+                    });
+                    if (fireworkParticles.length > 0) {
+                        requestAnimationFrame(drawFireworks);
+                    }
+                }
+
+                drawFireworks();
+            }
+        </script>
+    </body>
+</html>
