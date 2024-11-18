@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Multiplication Practice App</title>
+        <title>MathematicMan</title>
         <style>
             body {
                 font-family: Arial, sans-serif;
@@ -31,7 +31,7 @@
     </head>
     <body>
         <h1>Multiplication Practice Auguste & Thib</h1>
-        <label for="num-questions">Number of questions:</label>
+        <label for="num-questions">Nombre de question</label>
         <input type="number" id="num-questions" min="1" max="100" value="5" />
         <button onclick="generateQuestions()">Generate</button>
 
@@ -132,7 +132,7 @@
 
                     document.getElementById(
                         "result"
-                    ).innerText = `You got ${correctAnswers} out of ${questions.length} correct in ${timeTaken} seconds.`;
+                    ).innerText = `Tu as ${correctAnswers} sur ${questions.length} de correcte en ${timeTaken} secondes.`;
                     document.getElementById("incorrect-answers").innerHTML =
                         incorrectAnswers;
                     document.getElementById("stop-button").disabled = true;
